@@ -32,6 +32,7 @@ class RobotInterpreter:
         
         cmd_code = self.check_commands[direction]
         self.bluetooth.write(cmd_code)
+        print(cmd_code)
 
         # wait for arduino response
         time.sleep(1)
@@ -146,6 +147,7 @@ class RobotInterpreter:
             # Send command to robot
             bluetooth_command = f"{cmd_code}{duration}"
             self.bluetooth.write(bluetooth_command)
+            print(bluetooth_command)
             
             # Calculate and wait for appropriate duration
             if cmd_code != 'S':  # Don't wait for STOP command
