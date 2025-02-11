@@ -16,9 +16,31 @@ class RobotInterpreter:
             'TURN RIGHT': ('R', 0.8),
             'STOP': ('S', 0)
         }
+        # Check commands
+        self.check_commands = {
+            'FRONT': 'CF',
+            'LEFT': 'CL',
+            'RIGHT': 'CR',
+            'BACK': 'CB'
+        }
         self.variables = {}
         self.current_line = 0
-    
+    def check_direction(self, direction):
+        """check if a direction is free of obstacles"""
+        if direction not in self.check_commands:
+            raise SyntaxError(f"Invalid direction: {direction}")
+        
+        cmd_code = self.check_commands[direction]
+        self.bluetooth.write(cmd_code)
+
+        # wait for arduino response
+        time.sleep(1)
+        if self.bluetooth.ser.in_waiting:
+            response = self.bluetooth.read()
+            print(response)
+            return response != 'O'
+        return False
+
     def parse_program(self, code):
         """Parse and execute the program line by line"""
         lines = code.strip().split('\n')
@@ -32,6 +54,8 @@ class RobotInterpreter:
                 
             if line.startswith('REPEAT'):
                 self.handle_loop(lines)
+            elif line.startswith('IF'):
+                self.handle_if_statement(lines)
             else:
                 self.execute_line(line)
                 self.current_line += 1
@@ -65,7 +89,44 @@ class RobotInterpreter:
                     self.execute_line(cmd)
                     
         self.current_line += 1  # Move past END REPEAT
-    
+    def handle_if_statement(self, lines):
+        """Handle IF condition blocks"""
+        condition_line = lines[self.current_line].strip()
+
+        # Parse the IF condition
+        match = re.match(r'IF (NOT )?([A-Z]+) IS FREE', condition_line)
+        if not match:
+            raise SyntaxError(f"Invalid IF statement at line {self.current_line + 1}")
+        
+        is_negated = bool(match.group(1))
+        direction = match.group(2)
+
+        # check the condition
+        is_free = self.check_direction(direction)
+        condition_met = is_free if not is_negated else not is_free
+
+        if_body = []
+        self.current_line += 1
+
+        # Collect IF body until END IF
+        while self.current_line < len(lines):
+            line = lines[self.current_line].strip()
+            if line == 'END IF':
+                break
+            if_body.append(line)
+            self.current_line += 1
+        
+        if self.current_line >= len(lines):
+            raise SyntaxError("Missing END IF statement")
+        
+        #Execute IF body of condition is met
+        if condition_met:
+            for cmd in if_body:
+                if cmd.strip():
+                    self.execute_line(cmd)
+
+        self.current_line += 1  # Move past END IF
+
     def execute_line(self, line):
         """Execute a single line of code"""
         parts = line.strip().split()
@@ -111,7 +172,7 @@ class RobotIDE:
         self.root.title("Robot Car Programming IDE")
         self.bluetooth = None
         self.setup_ui()
-        self.refresh_ports()  # Add this line
+        self.refresh_ports()
         
     def setup_ui(self):
         # Add port selection dropdown above the buttons
@@ -143,8 +204,16 @@ class RobotIDE:
         self.run_btn.pack(side=tk.LEFT, padx=5)
         
         # Status Label
-        self.status_label = ttk.Label(self.root, text="Not Connected")
-        self.status_label.pack(pady=5)
+        self.status_label = ttk.Label(
+            self.root,
+            text="Not Connected",
+            wraplength=300,
+            anchor="center",
+            justify="center"
+        )
+        self.status_label.pack(pady=5, padx=10, fill=tk.X)
+
+        self.root.geometry("500x600")
         
     def refresh_ports(self):
         ports = [port.device for port in list_ports.comports()]
@@ -175,8 +244,10 @@ class RobotIDE:
         try:
             interpreter.parse_program(code)
             self.status_label.config(text="Program executed successfully")
+        except SyntaxError as e:
+            self.status_label.config(text=f"Syntax Error: {str(e)}", foreground="red")
         except Exception as e:
-            self.status_label.config(text=f"Error: {str(e)}")
+            self.status_label.config(text=f"Error: {str(e)}", foreground="red")
 
 if __name__ == "__main__":
     root = tk.Tk()
