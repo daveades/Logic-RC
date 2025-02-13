@@ -2,16 +2,16 @@
 
 const int trigPin = 9;
 const int echoPin = 10;
-const int rxPin = 2;  // Bluetooth RX pin
-const int txPin = 3;  // Bluetooth TX pin
+const int rxPin = 2;
+const int txPin = 3;
 
 SoftwareSerial bluetooth(rxPin, txPin);  // RX, TX
 long duration;
 int distance;
 
 void setup() {
-    Serial.begin(9600);      // Start Serial monitor
-    bluetooth.begin(9600);   // Start Bluetooth communication
+    Serial.begin(9600);
+    bluetooth.begin(9600);
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
     pinMode(rxPin, INPUT);
@@ -19,14 +19,12 @@ void setup() {
 }
 
 void loop() {
-    // Handle Bluetooth data
     if (bluetooth.available()) {
         String command = bluetooth.readStringUntil('\n');
         Serial.print("Received command: ");
         Serial.println(command);
     }
 
-    // Ultrasonic sensor code
     digitalWrite(trigPin, LOW);
     delayMicroseconds(2);
     
@@ -37,7 +35,6 @@ void loop() {
     duration = pulseIn(echoPin, HIGH);
     distance = duration * 0.034 / 2;
     
-    // Send distance data to both Serial Monitor and Bluetooth
     Serial.print("Distance: ");
     Serial.print(distance);
     Serial.println(" cm");
