@@ -150,19 +150,19 @@ class RobotInterpreter:
             print(bluetooth_command)
             
             # Calculate and wait for appropriate duration
-            if cmd_code != 'S':  # Don't wait for STOP command
-                wait_time = float(duration) * time_multiplier
-                start_time = time.time()
+            # if cmd_code != 'S':  # Don't wait for STOP command
+            #     wait_time = float(duration) * time_multiplier
+            #     start_time = time.time()
 
-                while time.time() - start_time < wait_time:
-                    if self.bluetooth.ser.in_waiting:
-                        response = self.bluetooth.read()
-                        print(response)
-                        if response == 'O':
-                            self.status_label.config(text="Obstacle detected")
-                            print("Obstacle detected")
-                            return
-                        time.sleep(0.1)
+            #     while time.time() - start_time < wait_time:
+            #         if self.bluetooth.ser.in_waiting:
+            #             response = self.bluetooth.read()
+            #             print(response)
+            #             if response == 'O':
+            #                 self.status_label.config(text="Obstacle detected")
+            #                 print("Obstacle detected")
+            #                 return
+            #             time.sleep(0.1)
             
             return
             

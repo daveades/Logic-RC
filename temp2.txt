@@ -1,0 +1,128 @@
+#include <SoftwareSerial.h>
+
+const int trigPin = 9;
+const int echoPin = 10;
+const int rxPin = 2;
+const int txPin = 3;
+
+long duration;
+int distance;
+// bool isMoving = false;
+// char command;
+// unsigned long startTime;
+// int move_duration;
+
+SoftwareSerial bluetooth(rxPin, txPin);
+
+void setup() {
+    Serial.begin(9600);
+    bluetooth.begin(9600);
+
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+
+    pinMode(rxPin, INPUT);
+    pinMode(txPin, OUTPUT);
+
+// 	pinMode(7, OUTPUT);
+// 	pinMode(6, OUTPUT);
+// 	pinMode(5, OUTPUT);
+// 	pinMode(4, OUTPUT);
+}
+
+void loop() 
+{
+    if (bluetooth.available()) {
+        String payload = bluetooth.readStringUntil('\n');
+        Serial.print("Payload: " + payload + '\n');
+        // command = payload.charAt(0);
+        // move_duration = payload.charAt(1) - '0';
+
+        // startTime = millis();
+        // isMoving = true;
+        // moveMotors(command);
+
+        // if (isMoving && (millis() - startTime >= duration * 1000)) {
+        //     stopMotors();
+        //     isMoving = false;
+        //     Serial.print("Stopped\n");
+        // }
+    }
+
+    // distance = getDistance(); 
+    Serial.print("Distance: " + distance + '\n');
+
+    delay(1000);
+}
+
+/**
+ * getDistance: Get the distance from the ultrasonic sensor
+ * 
+ * Return int: The distance in cm
+ */
+int getDistance()
+{
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    duration = pulseIn(echoPin, HIGH);
+    distance = duration * 0.034 / 2;
+
+    return distance;
+}
+
+/**
+ * moveMotors: Move the motors based on the command received
+ * 
+ * @param String command: The command received from the bluetooth module
+ */
+// void moveMotors(char command)
+// {
+// 	Serial.print("Moving: " + command);
+// 	switch (command)
+// 	{
+// 	case 'B': // Move Backward
+// 		digitalWrite(7, HIGH);
+// 		digitalWrite(6, LOW);
+// 		digitalWrite(5, HIGH);
+// 		digitalWrite(4, LOW);
+// 		break;
+// 	case 'F': // Move Forward
+// 		digitalWrite(7, LOW);
+// 		digitalWrite(6, HIGH);
+// 		digitalWrite(5, LOW);
+// 		digitalWrite(4, HIGH);
+// 		break;
+// 	case 'L': // Turn Left (1 second)
+// 		digitalWrite(7, HIGH);
+// 		digitalWrite(6, LOW);
+// 		digitalWrite(5, LOW);
+// 		digitalWrite(4, HIGH);
+// 		break;
+// 	case 'R': // Turn Right (1 second)
+// 		digitalWrite(7, LOW);
+// 		digitalWrite(6, HIGH);
+// 		digitalWrite(5, HIGH);
+// 		digitalWrite(4, LOW);
+// 		break;
+// 	case 'S': // Stop
+// 		stopMotors();
+// 		isMoving = false;
+// 		break;
+// 	}
+// }
+
+// /**
+//  * stopMotors: Stop the motors
+//  */
+// void stopMotors()
+// {
+//     digitalWrite(7, LOW);
+//     digitalWrite(6, LOW);
+//     digitalWrite(5, LOW);
+//     digitalWrite(4, LOW);
+// }
